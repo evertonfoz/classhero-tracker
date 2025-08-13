@@ -1,0 +1,47 @@
+name: "✨ Sugestão / melhoria"
+description: Proponha uma funcionalidade ou melhoria
+title: "[Feature] "
+labels: ["type:enhancement"]
+body:
+  - type: input
+    id: summary
+    attributes:
+      label: Resumo da ideia
+      placeholder: Ex.: Melhorar feedback do quiz na correção
+    validations:
+      required: true
+
+  - type: textarea
+    id: pain
+    attributes:
+      label: Problema/dor que resolve
+      placeholder: O que está faltando hoje? Qual impacto para o usuário?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposta de solução
+      placeholder: Descreva como imagina o funcionamento (fluxo/telas/regras)
+      render: markdown
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área
+      options:
+        - frontend
+        - backend
+        - nestjs
+        - supabase
+        - quiz
+        - assignments
+        - timeline
+        - rewards
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Prioridade sugerida
+      options: ["P0", "P1", "P2"]
