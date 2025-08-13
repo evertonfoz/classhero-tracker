@@ -1,0 +1,56 @@
+name: "🐞 Bug report"
+description: Reporte um problema encontrado no ClassHero
+labels: ["type:bug", "status:needs-info"]
+body:
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Confirmações
+      options:
+        - label: Li as instruções e procurei issue semelhante
+          required: true
+  - type: input
+    id: title
+    attributes:
+      label: Título curto do bug
+      placeholder: Ex.: Erro ao enviar código de login no mobile
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Passos para reproduzir
+      description: Liste os passos numerados
+      placeholder: |
+        1. Acessar ...
+        2. Clicar em ...
+        3. Observar ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Comportamento esperado
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Comportamento atual
+    validations:
+      required: true
+  - type: input
+    id: context
+    attributes:
+      label: Contexto (curso/turma/tema/material)
+      placeholder: Ex.: Disciplina POO, Turma 2025-2, Tema 3, Material ABC
+  - type: input
+    id: env
+    attributes:
+      label: Ambiente
+      placeholder: Ex.: iPhone 13 iOS 17.5 / Chrome 126 no macOS 14
+  - type: textarea
+    id: extra
+    attributes:
+      label: Evidências (prints, logs, vídeo)
+      description: Arraste e solte arquivos aqui
