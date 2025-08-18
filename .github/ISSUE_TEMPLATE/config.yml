@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: ❓ Dúvidas gerais
+    url: https://github.com/sua-org/classhero-issues/discussions
+    about: Use as Discussions para perguntas que não são bugs ou features.
