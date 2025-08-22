@@ -1,17 +1,4 @@
 name: "✨ Sugestão / melhoria"
-description: Proponha uma funcionalidade ou melhoria
-title: "[Feature] "
-labels: ["type:enhancement"]
-body:
-  - type: input
-    id: summary
-    attributes:
-      label: Resumo da ideia
-      placeholder: Ex.: Melhorar feedback do quiz na correção
-    validations:
-      required: true
-
-  - type: textareaname: "✨ Sugestão / melhoria"
 description: "Proponha uma funcionalidade ou melhoria"
 title: "[Feature] "
 labels:
