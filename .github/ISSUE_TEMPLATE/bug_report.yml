@@ -1,56 +1,130 @@
 name: "🐞 Bug report"
-description: Reporte um problema encontrado no ClassHero
-labels: ["type:bug", "status:needs-info"]
+description: "Reporte um problema encontrado no ClassHero"
+title: "[Bug] "
+labels:
+  - "type:bug"
+  - "status:needs-info"
 body:
   - type: checkboxes
     id: checks
     attributes:
-      label: Confirmações
+      label: "Confirmações"
+      description: "Antes de enviar, confirme:"
       options:
-        - label: Li as instruções e procurei issue semelhante
+        - label: "Procurei por issues semelhantes"
           required: true
+        - label: "Reproduzi o problema pelo menos 1–2 vezes"
+          required: true
+
   - type: input
-    id: title
+    id: summary
     attributes:
-      label: Título curto do bug
-      placeholder: Ex.: Erro ao enviar código de login no mobile
+      label: "Resumo do problema (1 linha)"
+      placeholder: "Login — código não chega no mobile (iOS 17)"
     validations:
       required: true
+
   - type: textarea
     id: steps
     attributes:
-      label: Passos para reproduzir
-      description: Liste os passos numerados
+      label: "Passos para reproduzir"
+      description: "Liste os passos numerados."
       placeholder: |
-        1. Acessar ...
-        2. Clicar em ...
-        3. Observar ...
+        1) Acessar ...
+        2) Clicar em ...
+        3) Observar ...
+      render: markdown
     validations:
       required: true
+
   - type: textarea
     id: expected
     attributes:
-      label: Comportamento esperado
+      label: "Comportamento esperado"
+      placeholder: "O que você esperava que acontecesse?"
     validations:
       required: true
+
   - type: textarea
     id: actual
     attributes:
-      label: Comportamento atual
+      label: "Comportamento atual"
+      description: "Inclua mensagens de erro visíveis na tela, se houver."
+      placeholder: "O que aconteceu de fato?"
     validations:
       required: true
-  - type: input
-    id: context
+
+  - type: dropdown
+    id: severity
     attributes:
-      label: Contexto (curso/turma/tema/material)
-      placeholder: Ex.: Disciplina POO, Turma 2025-2, Tema 3, Material ABC
-  - type: input
-    id: env
+      label: "Severidade"
+      options:
+        - "bloqueante"
+        - "alta"
+        - "média"
+        - "baixa"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: reproducibility
     attributes:
-      label: Ambiente
-      placeholder: Ex.: iPhone 13 iOS 17.5 / Chrome 126 no macOS 14
+      label: "Reprodutibilidade"
+      options:
+        - "sempre"
+        - "frequentemente"
+        - "às vezes"
+        - "raramente"
+        - "não reproduzi novamente"
+
+  - type: input
+    id: area
+    attributes:
+      label: "Área/funcionalidade"
+      placeholder: "frontend, backend, nestjs, supabase, quiz, assignments, timeline, rewards"
+
+  - type: input
+    id: route
+    attributes:
+      label: "Tela/rota (se aplicável)"
+      placeholder: "/home/theme-materials"
+
+  - type: input
+    id: user_role
+    attributes:
+      label: "Papel do usuário"
+      placeholder: "estudante / professor / admin"
+
+  - type: dropdown
+    id: auth
+    attributes:
+      label: "Autenticação"
+      options:
+        - "código por e-mail"
+        - "senha"
+        - "não autenticado"
+        - "outro"
+
+  - type: input
+    id: version
+    attributes:
+      label: "Versão/build (se souber)"
+      placeholder: "tag, hash do commit ou data/hora"
+
+  - type: input
+    id: environment
+    attributes:
+      label: "Ambiente"
+      placeholder: "iPhone 13 iOS 17.5 / Chrome 126 no macOS 14 / Android 14 app"
+
   - type: textarea
-    id: extra
+    id: evidence
     attributes:
-      label: Evidências (prints, logs, vídeo)
-      description: Arraste e solte arquivos aqui
+      label: "Evidências"
+      description: "Arraste e solte prints, vídeos curtos e trechos de log (anonimizados)."
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: "Observações adicionais"
+      placeholder: "Qualquer detalhe que ajude na triagem."
