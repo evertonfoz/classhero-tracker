@@ -77,11 +77,20 @@ body:
         - "raramente"
         - "não reproduzi novamente"
 
-  - type: input
+  - type: dropdown
     id: area
     attributes:
       label: "Área/funcionalidade"
-      placeholder: "frontend, backend, nestjs, supabase, quiz, assignments, timeline, rewards"
+      options:
+        - "frontend"
+        - "backend"
+        - "nestjs"
+        - "supabase"
+        - "quiz"
+        - "assignments"
+        - "timeline"
+        - "rewards"
+
 
   - type: input
     id: route
