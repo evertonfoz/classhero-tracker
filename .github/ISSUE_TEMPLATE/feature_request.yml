@@ -3,6 +3,7 @@ description: "Proponha uma funcionalidade ou melhoria"
 title: "[Feature] "
 labels:
   - "type:enhancement"
+  - "status:needs-info"
 body:
   - type: input
     id: summary
