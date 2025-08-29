@@ -1,0 +1,73 @@
+name: "Issue triage: área & prioridade"
+on:
+  issues:
+    types: [opened, edited]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  labeler:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mapear labels por conteúdo do formulário
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = context.payload.issue.body || "";
+
+            function pick(section) {
+              const r = new RegExp(`###\\s*${section}[\\s\\S]*?\\n\\s*([\\s\\S]*?)\\n(?:###|$)`, "i");
+              const m = body.match(r);
+              return m ? m[1].trim() : null;
+            }
+
+            const area = pick("Área");
+            const prioridade = pick("Prioridade");
+
+            const areaMap = {
+              "Frontend (UI/UX)": "area: frontend (ui/ux)",
+              "Backend (API)": "area: backend",
+              "Mobile (Flutter)": "area: mobile",
+              "Data/SQL": "area: data-sql",
+              "Infra/DevOps": "area: infra-devops",
+              "Docs/Conteúdo": "area: docs",
+              "Produto/UX Research": "area: produto-ux"
+            };
+
+            const prioMap = { "P0": "priority:P0", "P1": "priority:P1", "P2": "priority:P2" };
+
+            const labels = [];
+            if (area && areaMap[area]) labels.push(areaMap[area]);
+            if (prioridade && prioMap[prioridade]) labels.push(prioMap[prioridade]);
+
+            async function ensureLabel(name, color = "D4C5F9") {
+              try {
+                await github.rest.issues.getLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name,
+                });
+              } catch (_) {
+                await github.rest.issues.createLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name,
+                  color,
+                });
+              }
+            }
+
+            for (const l of labels) {
+              await ensureLabel(l);
+            }
+
+            if (labels.length) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.issue.number,
+                labels
+              });
+            }
