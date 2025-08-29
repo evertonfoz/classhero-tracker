@@ -3,11 +3,3 @@ contact_links:
   - name: "❓ Dúvidas gerais (Discussions)"
     url: "https://github.com/evertonfoz/classhero-tracker/discussions"
     about: "Perguntas que não são bugs ou melhorias."
-
-  - name: "✨ Sugestão / melhoria (formulário)"
-    url: "https://github.com/evertonfoz/classhero-tracker/issues/new?template=feature_request.yml"
-    about: "Abra uma sugestão de feature/melhoria usando o formulário."
-
-  - name: "🐞 Reportar bug (formulário)"
-    url: "https://github.com/evertonfoz/classhero-tracker/issues/new?template=bug_report.yml"
-    about: "Reporte um defeito usando o formulário de bug."
