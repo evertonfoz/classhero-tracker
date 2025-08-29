@@ -17,32 +17,85 @@ jobs:
           script: |
             const body = context.payload.issue.body || "";
 
+            // Lê o conteúdo abaixo de "### <Seção>" no Issue Form
             function pick(section) {
               const r = new RegExp(`###\\s*${section}[\\s\\S]*?\\n\\s*([\\s\\S]*?)\\n(?:###|$)`, "i");
               const m = body.match(r);
               return m ? m[1].trim() : null;
             }
 
-            const area = pick("Área");
-            const prioridade = pick("Prioridade");
+            // Normaliza/remover acentos e aspas, pega só a 1ª linha
+            const norm = (s) =>
+              s
+                ? s
+                    .split('\n')[0]
+                    .replace(/^[-*>\s]+/, '')
+                    .replace(/^['"`]+|['"`]+$/g, '')
+                    .normalize('NFD')
+                    .replace(/[\u0300-\u036f]/g, '')
+                    .toLowerCase()
+                    .trim()
+                : null;
 
+            // Campos dos seus forms
+            const areaRaw       = pick("Área") || pick("Área/funcionalidade");
+            const prioridadeRaw = pick("Prioridade sugerida") || pick("Prioridade");
+            const severidadeRaw = pick("Severidade"); // só existe no Bug
+
+            const area = norm(areaRaw);
+            const prioridade = prioridadeRaw ? prioridadeRaw.toUpperCase().trim() : null;
+            const severidade = norm(severidadeRaw);
+
+            // Mapas alinhados aos seus dropdowns
             const areaMap = {
-              "Frontend (UI/UX)": "area: frontend (ui/ux)",
-              "Backend (API)": "area: backend",
-              "Mobile (Flutter)": "area: mobile",
-              "Data/SQL": "area: data-sql",
-              "Infra/DevOps": "area: infra-devops",
-              "Docs/Conteúdo": "area: docs",
-              "Produto/UX Research": "area: produto-ux"
+              "frontend":    "area: frontend",
+              "backend":     "area: backend",
+              "nestjs":      "area: nestjs",
+              "supabase":    "area: supabase",
+              "quiz":        "area: quiz",
+              "assignments": "area: assignments",
+              "timeline":    "area: timeline",
+              "rewards":     "area: rewards"
             };
 
             const prioMap = { "P0": "priority:P0", "P1": "priority:P1", "P2": "priority:P2" };
 
-            const labels = [];
-            if (area && areaMap[area]) labels.push(areaMap[area]);
-            if (prioridade && prioMap[prioridade]) labels.push(prioMap[prioridade]);
+            // Severidade (Bug) -> Prioridade
+            const sevToPrio = {
+              "bloqueante": "priority:P0",
+              "alta":       "priority:P1",
+              "media":      "priority:P2",
+              "média":      "priority:P2",
+              "baixa":      "priority:P2"
+            };
 
-            async function ensureLabel(name, color = "D4C5F9") {
+            // Cores padrão dos labels (opcional)
+            const colorMap = {
+              "priority:P0": "E11D21",
+              "priority:P1": "FBCA04",
+              "priority:P2": "C2E0C6",
+              "area: frontend": "1F6FEB",
+              "area: backend":  "0E8A16",
+              "area: nestjs":   "2DB6F5",
+              "area: supabase": "3FB950",
+              "area: quiz":     "8A63D2",
+              "area: assignments": "BFDADC",
+              "area: timeline": "6F42C1",
+              "area: rewards":  "D93F0B"
+            };
+
+            const labels = [];
+
+            if (area && areaMap[area]) labels.push(areaMap[area]);
+
+            if (prioridade && prioMap[prioridade]) {
+              labels.push(prioMap[prioridade]);
+            } else if (severidade && sevToPrio[severidade]) {
+              labels.push(sevToPrio[severidade]);
+            }
+
+            async function ensureLabel(name) {
+              const color = colorMap[name] || "C2E0C6";
               try {
                 await github.rest.issues.getLabel({
                   owner: context.repo.owner,
