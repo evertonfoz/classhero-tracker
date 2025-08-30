@@ -9,75 +9,79 @@ description: "Data inicial (AAAA-MM-DD)"
 required: true
 until:
 description: "Data final (AAAA-MM-DD)"
-required: true
+required: truename: Generate monthly changelog
 
+on:
+  workflow_dispatch:
+    inputs:
+      since:
+        description: "Data inicial (AAAA-MM-DD)"
+        required: true
+        type: string
+      until:
+        description: "Data final (AAAA-MM-DD)"
+        required: true
+        type: string
 
 jobs:
-build:
-runs-on: ubuntu-latest
-permissions:
-contents: write
-steps:
-- uses: actions/checkout@v4
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
 
+      - name: Build changelog content (Issues fechadas no período)
+        id: build
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const since = core.getInput('since');
+            const until = core.getInput('until');
+            const month = since.slice(0,7); // AAAA-MM
+            const { owner, repo } = context.repo;
 
-- name: Build changelog content (Issues fechadas no período)
-id: build
-uses: actions/github-script@v7
-with:
-script: |
-const fs = require('fs');
-const path = require('path');
-const since = core.getInput('since');
-const until = core.getInput('until');
-const month = since.slice(0,7); // AAAA-MM
-const repo = `${context.repo.owner}/${context.repo.repo}`;
+            async function search(q) {
+              const results = await github.paginate(
+                github.rest.search.issuesAndPullRequests,
+                { q, per_page: 100 }
+              );
+              // mantém só issues (remove PRs)
+              return results.filter(i => !i.pull_request);
+            }
 
+            const base = `repo:${owner}/${repo} is:issue is:closed label:"status:done" closed:${since}..${until}`;
+            const enhancements = await search(`${base} label:"type:enhancement"`);
+            const bugs = await search(`${base} label:"type:bug"`);
 
-async function search(q) {
-return await github.paginate(github.rest.search.issuesAndPullRequests, {
-q,
-per_page: 100,
-});
-}
+            const toLines = (list) =>
+              list.length ? list.map(i => `- ${i.title} (#${i.number})`) : ['- _sem itens_'];
 
+            const lines = [
+              `# Changelog — ${month}`,
+              '',
+              '## ✨ Melhorias',
+              ...toLines(enhancements),
+              '',
+              '## 🐞 Correções',
+              ...toLines(bugs),
+              '',
+              '## 📌 Observações',
+              '- (adicione notas, migrações, etc. se necessário)',
+            ];
 
-const base = `repo:${repo} is:issue is:closed label:"status:done" closed:${since}..${until}`;
-const enh = await search(`${base} label:"type:enhancement"`);
-const bugs = await search(`${base} label:"type:bug"`);
+            const dir = path.join(process.cwd(), 'changelogs');
+            const file = path.join(dir, `${month}.md`);
+            fs.mkdirSync(dir, { recursive: true });
+            fs.writeFileSync(file, lines.join('\n'), 'utf8');
 
+            core.setOutput('file', `changelogs/${month}.md`);
 
-function toLines(list){
-if(!list.length) return ['- _sem itens_'];
-return list.map(i => `- ${i.title} (#${i.number})`);
-}
-
-
-const lines = [
-`# Changelog — ${month}`,
-'',
-'## ✨ Melhorias',
-...toLines(enh),
-'',
-'## 🐞 Correções',
-...toLines(bugs),
-'',
-'## 📌 Observações',
-'- (adicione notas, migrações, etc. se necessário)'
-];
-
-
-const dir = path.join(process.cwd(), 'changelogs');
-const out = path.join(dir, `${month}.md`);
-fs.mkdirSync(dir, { recursive: true });
-fs.writeFileSync(out, lines.join('\n'));
-
-
-core.setOutput('path', `changelogs/${month}.md`);
-
-
-- name: Commit changelog file
-uses: stefanzweifel/git-auto-commit-action@v5
-with:
-commit_message: "chore(changelog): add ${{ inputs.since }}..${{ inputs.until }}"
-file_pattern: changelogs/*.md
+      - name: Commit changelog file
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: |
+            chore(changelog): add ${{ inputs.since }}..${{ inputs.until }}
+          file_pattern: changelogs/*.md
