@@ -6,9 +6,11 @@ on:
       since:
         description: "Data inicial (AAAA-MM-DD)"
         required: true
+        type: string
       until:
         description: "Data final (AAAA-MM-DD)"
         required: true
+        type: string
 
 jobs:
   build:
@@ -22,12 +24,24 @@ jobs:
         id: build
         uses: actions/github-script@v7
         with:
+          # >>> PASSA OS INPUTS PARA O STEP <<<
+          since: ${{ inputs.since }}
+          until: ${{ inputs.until }}
           script: |
             const fs = require('fs');
             const path = require('path');
             const { owner, repo } = context.repo;
+
             const since = core.getInput('since');
             const until = core.getInput('until');
+
+            // valida formato AAAA-MM-DD
+            const rx = /^\d{4}-\d{2}-\d{2}$/;
+            if (!rx.test(since) || !rx.test(until)) {
+              core.setFailed(`Datas inválidas: since='${since}', until='${until}'. Use AAAA-MM-DD.`);
+              return;
+            }
+
             const month = since.slice(0, 7); // AAAA-MM
 
             async function search(q) {
