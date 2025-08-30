@@ -23,19 +23,19 @@ jobs:
       - name: Build changelog content (Issues fechadas no período)
         id: build
         uses: actions/github-script@v7
+        env:
+          SINCE: ${{ inputs.since }}
+          UNTIL: ${{ inputs.until }}
         with:
-          # >>> PASSA OS INPUTS PARA O STEP <<<
-          since: ${{ inputs.since }}
-          until: ${{ inputs.until }}
           script: |
             const fs = require('fs');
             const path = require('path');
             const { owner, repo } = context.repo;
 
-            const since = core.getInput('since');
-            const until = core.getInput('until');
+            const since = process.env.SINCE ?? '';
+            const until = process.env.UNTIL ?? '';
 
-            // valida formato AAAA-MM-DD
+            // valida AAAA-MM-DD
             const rx = /^\d{4}-\d{2}-\d{2}$/;
             if (!rx.test(since) || !rx.test(until)) {
               core.setFailed(`Datas inválidas: since='${since}', until='${until}'. Use AAAA-MM-DD.`);
@@ -60,7 +60,7 @@ jobs:
             const toLines = list =>
               list.length ? list.map(i => `- ${i.title} (#${i.number})`) : ['- _sem itens_'];
 
-            const lines = [
+            const content = [
               `# Changelog — ${month}`,
               '',
               '## ✨ Melhorias',
@@ -71,17 +71,63 @@ jobs:
               '',
               '## 📌 Observações',
               '- (adicione notas, migrações, etc. se necessário)',
-            ];
+              ''
+            ].join('\n');
 
             const outDir = path.join(process.cwd(), 'changelogs');
             const outFile = path.join(outDir, `${month}.md`);
             fs.mkdirSync(outDir, { recursive: true });
-            fs.writeFileSync(outFile, lines.join('\n'), 'utf8');
+            fs.writeFileSync(outFile, content, 'utf8');
 
             core.setOutput('file', `changelogs/${month}.md`);
+
+      - name: Update root CHANGELOG.md index
+        uses: actions/github-script@v7
+        env:
+          SINCE: ${{ inputs.since }}
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            const monthFromInput = (process.env.SINCE || '').slice(0,7); // AAAA-MM
+            const root = path.join(process.cwd(), 'CHANGELOG.md');
+            const dir  = path.join(process.cwd(), 'changelogs');
+
+            // lista todos os meses existentes na pasta changelogs
+            let months = [];
+            if (fs.existsSync(dir)) {
+              months = fs.readdirSync(dir)
+                .filter(f => /^\d{4}-\d{2}\.md$/.test(f))
+                .map(f => f.replace(/\.md$/, ''));
+            }
+            if (monthFromInput && !months.includes(monthFromInput)) {
+              months.push(monthFromInput);
+            }
+            // ordena desc (mais recente primeiro)
+            months.sort().reverse();
+
+            if (months.length === 0) {
+              return; // nada para indexar
+            }
+
+            const latest = months[0];
+            const lines = [
+              '# CHANGELOG',
+              '',
+              `**Último:** [${latest}](changelogs/${latest}.md)`,
+              '',
+              '## Histórico',
+              ...months.map(m => `- [${m}](changelogs/${m}.md)`),
+              ''
+            ].join('\n');
+
+            fs.writeFileSync(root, lines, 'utf8');
 
       - name: Commit changelog file
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore(changelog): add ${{ inputs.since }}..${{ inputs.until }}"
-          file_pattern: changelogs/*.md
+          file_pattern: |
+            changelogs/*.md
+            CHANGELOG.md
